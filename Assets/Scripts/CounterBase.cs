@@ -64,19 +64,21 @@ namespace Counter
 
         private string GetLastString()
         {
-            const string query = "SELECT data FROM my_strings ORDER BY id DESC LIMIT @count";
-            using var command = new MySqlCommand(query, _connection);
-            using var reader = command.ExecuteReader();
-            if (reader.Read())
-                return reader.GetString("data");
-            return null;
+            var strs = GetLastStrings(_count);
+            return strs.Count > 0 ? strs[0] : null;
         }
 
         public void UpdateStrings()
         {
             var strs = GetLastStrings(_count);
-            for (var i = 0; i < Math.Min(strs.Count, 10); ++i)
-                Histroy[i].text = i + 1 + ": " + strs[i];
+            for (var i = 0; i < 10; ++i)
+            {
+                var j = i;
+                if (strs.Count > i)
+                    Histroy[i].text = j + 1 + ": " + strs[i];
+                else
+                    Histroy[i].text = "";
+            }
         }
 
         public void Open(GameObject obj) => obj.SetActive(true);
@@ -92,6 +94,8 @@ namespace Counter
             while (reader.Read())
             {
                 var data = reader.GetString("data");
+                if (_lastStrings.Count >= count)
+                    _lastStrings.RemoveAt(_lastStrings.Count - 1);
                 _lastStrings.Insert(0, data);
             }
 
